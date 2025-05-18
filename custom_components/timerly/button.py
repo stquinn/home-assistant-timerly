@@ -1,7 +1,10 @@
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import DeviceInfo
-import logging
+import logging;
+
 _LOGGER = logging.getLogger(__name__)
+
+
 from .const import DOMAIN
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -10,7 +13,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ])
 
 class TimerlyStartButton(ButtonEntity):
-    def __init__(self, device_id, name, config_entry_id):
+    def __init__(self, config_entry_id):
         self._attr_name = f"Clear Timers"
         self._attr_unique_id = f"timerly_clear_timer_button"
         self._attr_config_entry_id = config_entry_id

@@ -21,7 +21,7 @@ class TimerlyDevice:
         self.name = clean_name
         self.address = address
         self.port = port
-        self.unique_id = f"timerly_{self.name.lower().replace('.', '_')}"
+        self.unique_id = f"timerly_{self.name.lower().replace('.', '_').replace(' ', '_')}"
 
 
 def get_discovered_devices():

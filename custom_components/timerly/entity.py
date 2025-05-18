@@ -1,6 +1,10 @@
 import logging
 from datetime import datetime, timezone
 from homeassistant.helpers.entity import Entity
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntity,
+    BinarySensorDeviceClass,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from .const import DOMAIN, PING_TIMEOUT_SEC, UPDATE_TIMEOUT_SEC
@@ -18,7 +22,7 @@ already_added = set()
 entity_registry = {}
 
 
-class TimerlyTimerEntity(Entity):
+class TimerlyTimerEntity(BinarySensorEntity):
     def __init__(self, name: str, device: TimerlyDevice, config_entry):
         self._device = device
         # self._name = device.name
@@ -30,10 +34,11 @@ class TimerlyTimerEntity(Entity):
 
         # ✅ Set Home Assistant Entity attributes
         self._attr_has_entity_name = True
-        self._attr_name = device.name
+        self._attr_name = "Timer"
         self._attr_icon = "mdi:bell-badge"
+        self._attr_device_class = BinarySensorDeviceClass.RUNNING
         self._attr_should_poll = True
-        self._attr_unique_id = device.unique_id
+        self._attr_unique_id = f"timerly_{config_entry.entry_id}_{device.name}_timer"
         self._attr_config_entry_id = config_entry.entry_id  # ✅ Correct modern usage
         _LOGGER.info("Config Entry is  %s", id(config_entry))
         _LOGGER.info(
@@ -45,19 +50,18 @@ class TimerlyTimerEntity(Entity):
     @property
     def state(self):
         if not self._is_running or not self._end_utc:
-            return "idle"
-        remaining = (self._end_utc - datetime.now(timezone.utc)).total_seconds()
-        return int(max(0, remaining))
+            return "off"
+        return "on"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, "Timerly")},
+            identifiers={(DOMAIN, f"{self._attr_config_entry_id}_{self._device.name}")},
             manufacturer="Timerly",
-            name="Timerly",
+            name=f"{self._device.name}",
             sw_version="1.0.0",
-            model="Timerly Visual Timer"
+            model="Timerly Visual Timer",
         )
 
     @property
@@ -67,7 +71,7 @@ class TimerlyTimerEntity(Entity):
             "selected": self._selected,
             "running": self._is_running,
             "end_time_utc": self._end_utc.isoformat() if self._end_utc else None,
-            **self._last_props
+            **self._last_props,
         }
 
         if self._is_running and self._end_utc:
@@ -76,7 +80,9 @@ class TimerlyTimerEntity(Entity):
             if remaining_sec > 0:
                 mins, secs = divmod(remaining_sec, 60)
                 hrs, mins = divmod(mins, 60)
-                attrs["remaining_time"] = f"{hrs}h {mins}m {secs}s" if hrs > 0 else f"{mins}m {secs}s"
+                attrs["remaining_time"] = (
+                    f"{hrs}h {mins}m {secs}s" if hrs > 0 else f"{mins}m {secs}s"
+                )
             else:
                 attrs["remaining_time"] = "0s"
         else:
@@ -87,31 +93,31 @@ class TimerlyTimerEntity(Entity):
     def set_available(self, is_available: bool):
         if is_available != self._available:
             self._available = is_available
-            state = "ONLINE" if is_available else "UNAVAILABLE"
-            _LOGGER.info("🔄 %s is now %s", self._attr_name, state)
-            self.async_schedule_update_ha_state()
+            msg = "ONLINE" if is_available else "UNAVAILABLE"
+            _LOGGER.info("🔄 %s %s is now %s", self._device.name, self._attr_name, msg)
+            self.schedule_update_ha_state(True)
 
-    # @property
-    # def available(self):
-    #     return self._available
+    @property
+    def available(self):
+        return self._available
 
-    # @property
-    # def should_poll(self):
-    #     return True
+    @property
+    def should_poll(self):
+        return True
 
     async def async_added_to_hass(self):
         # Schedule a fast health check 2 seconds after startup
         async def quick_check():
-            await asyncio.sleep(2)
+            await asyncio.sleep(30)
             is_online, _ = await self.ping(timeout=1)  # fast, short timeout
             self.set_available(is_online)
 
         asyncio.create_task(quick_check())
 
     async def async_update(self):
-        if not self.available:
-            _LOGGER.debug("⏳ Skipping update — %s is unavailable", self.name)
-            return
+        # if not self._available:
+        #     _LOGGER.debug("⏳ Skipping update — %s is unavailable", self.name)
+        #     return
         import aiohttp
 
         try:
@@ -119,6 +125,7 @@ class TimerlyTimerEntity(Entity):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=UPDATE_TIMEOUT_SEC) as resp:
                     if resp.status == 200:
+                        "👍 PING worked %s from Timerly %s",
                         data = await resp.json()
                         self._last_props = data.get("properties", {})
                         end_ms = data.get("endTime")
@@ -129,9 +136,26 @@ class TimerlyTimerEntity(Entity):
                             self._is_running = True
                         else:
                             self._is_running = False
+                        self.set_available(True)
                     if resp.status == 404:
                         self._is_running = False
                         self._last_props = {}
+                        self.set_available(True)
+                    _LOGGER.debug(
+                            "👍 PING worked %s from Timerly %s",
+                            resp.status,
+                            self._device.name,
+                        )
+        except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
+            if self._available:  # only log the first time
+                _LOGGER.warning(
+                    "❌ Failed to reach Timerly %s (%s:%s): %s",
+                    self._device.name,
+                    self._device.address,
+                    self._device.port,
+                    e,
+                )
+            self.set_available(False)
         except Exception as e:
             _LOGGER.warning("Failed to update Timerly %s: %s", self._device.name, e)
             self._is_running = False

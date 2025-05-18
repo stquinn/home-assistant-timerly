@@ -21,7 +21,7 @@ async def try_add_new_entities(hass: HomeAssistant):
     registry = async_get_entity_registry(hass)
     _LOGGER.info("🆕 Got Registry")
     existing_entity_ids = {
-        e.entity_id for e in registry.entities.values() if e.domain == DOMAIN
+        e.entity_id for e in registry.entities.values() if e.platform == DOMAIN
     }
 
     new_entities = []
@@ -29,15 +29,20 @@ async def try_add_new_entities(hass: HomeAssistant):
     for name, device_info in discovered.items():
         _LOGGER.info("🆕 Checking %s", name)
         device = device_info["device"] if isinstance(device_info, dict) else device_info
-        entity_id = f"{DOMAIN}.{name.lower().replace(' ', '_')}"
+        entity_id = f"binary_sensor.{name.lower().replace(' ', '_')}_timer"
+        entity = TimerlyTimerEntity(name, device, entry)
+        hass.data[DOMAIN].setdefault("entities", []).append(entity)
+        # I know this is wrong and gives an error but seems to be the only way to get it all wired up
+        # I am not doing this registration properly - needs huge simplification
+        new_entities.append(entity) 
         if entity_id not in existing_entity_ids:
             _LOGGER.info("🆕 New Device %s", name)
-            entity = TimerlyTimerEntity(name, device, entry)
-            new_entities.append(entity)
-            hass.data[DOMAIN].setdefault("entities", []).append(entity)
         else:
             _LOGGER.info("🆕 Old Device %s", name)
-
+    _LOGGER.debug(
+        "📦 Entity cache now has %d entities",
+        len(hass.data[DOMAIN].setdefault("entities", [])),
+    )
     if new_entities:
         _LOGGER.info("🆕 Adding %d new Timerly entities", len(new_entities))
         async_add_entities(new_entities)

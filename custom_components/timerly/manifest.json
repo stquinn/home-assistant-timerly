@@ -2,11 +2,11 @@
   "domain": "timerly",
   "name": "Timerly",
   "version": "1.0.0",
-  "documentation": "https://github.com/yourusername/home-assistant-timerly",
+  "documentation": "https://github.com/stquinn/home-assistant-timerly",
   "dependencies": ["zeroconf"],
   "requirements": [],
-  "codeowners": ["@yourgithub"],
+  "codeowners": ["@stquinn"],
   "iot_class": "local_polling",
   "config_flow": true,
-  "platforms": ["sensor"]
+  "platforms": ["binary_sensor", "notify"]
 }

@@ -3,7 +3,7 @@ start_timer:
   description: Starts a visual countdown timer on a Timerly device.
   target:
     entity:
-      domain: timerly
+      integration: timerly
     device:
       integration: timerly
   fields:

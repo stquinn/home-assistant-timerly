@@ -23,7 +23,8 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "button"]
+# PLATFORMS = ["binary_sensor", "button"]
+PLATFORMS = ["binary_sensor"]
 
 # at the module level
 discovery_browser = None
@@ -46,11 +47,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
+
 async def async_setup(hass: HomeAssistant, config: dict):
     async def post_to_hosts(hosts, endpoint: str, payload: dict):
         for host in hosts:
             try:
-                uri = f"http://{host.address}:{host.port}/{endpoint}"
+                uri = (
+                    f"http://{host['device'].address}:{host['device'].port}/{endpoint}"
+                )
                 async with aiohttp.ClientSession() as session:
                     async with session.post(uri, json=payload, timeout=5) as response:
                         if response.status != 200:
@@ -61,16 +65,21 @@ async def async_setup(hass: HomeAssistant, config: dict):
                                 response.status,
                             )
             except Exception as e:
-                _LOGGER.exception("Error sending %s to %s - %s", endpoint, host.name, e)
+                _LOGGER.exception(
+                    "Error sending %s to %s - %s", endpoint, host["device"].name, e
+                )
 
     def get_matching_devices(entity_ids):
         devices = get_discovered_devices().values()
         # Determine which hosts match the selected entity_ids
         if entity_ids:
+            entity_id_values = (
+                entity_ids.values() if isinstance(entity_ids, dict) else entity_ids
+            )
             hosts = [
                 h
                 for h in devices
-                if f"timerly.{h.name.lower().replace(' ', '_')}" in entity_ids
+                if f"timerly.{h.name.lower().replace(' ', '_')}" in (entity_id_values)
             ]
         else:
             hosts = devices
@@ -127,6 +136,4 @@ async def async_setup(hass: HomeAssistant, config: dict):
     hass.services.async_register(DOMAIN, "doorbell", handle_doorbell)
     hass.services.async_register(DOMAIN, "dismiss", handle_dismiss)
 
-
     return True
-
