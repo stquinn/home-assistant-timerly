@@ -55,42 +55,41 @@ class TimerlyTimerEntity(Entity):
         return DeviceInfo(
             identifiers={(DOMAIN, "Timerly")},
             manufacturer="Timerly",
-            name=self._attr_name,
+            name="Timerly",
             sw_version="1.0.0",
-            model="Timerly Visual Timer",
-            suggested_area="self._name",
+            model="Timerly Visual Timer"
         )
 
-    # @property
-    # def extra_state_attributes(self):
-    #     attrs = {
-    #         "device": self._device.name,
-    #         "selected": self._selected,
-    #         "running": self._is_running,
-    #         "end_time_utc": self._end_utc.isoformat() if self._end_utc else None,
-    #         **self._last_props
-    #     }
+    @property
+    def extra_state_attributes(self):
+        attrs = {
+            "device": self._device.name,
+            "selected": self._selected,
+            "running": self._is_running,
+            "end_time_utc": self._end_utc.isoformat() if self._end_utc else None,
+            **self._last_props
+        }
 
-    #     if self._is_running and self._end_utc:
-    #         now = datetime.now(timezone.utc)
-    #         remaining_sec = int((self._end_utc - now).total_seconds())
-    #         if remaining_sec > 0:
-    #             mins, secs = divmod(remaining_sec, 60)
-    #             hrs, mins = divmod(mins, 60)
-    #             attrs["remaining_time"] = f"{hrs}h {mins}m {secs}s" if hrs > 0 else f"{mins}m {secs}s"
-    #         else:
-    #             attrs["remaining_time"] = "0s"
-    #     else:
-    #         attrs["remaining_time"] = "idle"
+        if self._is_running and self._end_utc:
+            now = datetime.now(timezone.utc)
+            remaining_sec = int((self._end_utc - now).total_seconds())
+            if remaining_sec > 0:
+                mins, secs = divmod(remaining_sec, 60)
+                hrs, mins = divmod(mins, 60)
+                attrs["remaining_time"] = f"{hrs}h {mins}m {secs}s" if hrs > 0 else f"{mins}m {secs}s"
+            else:
+                attrs["remaining_time"] = "0s"
+        else:
+            attrs["remaining_time"] = "idle"
 
-    #     return attrs
+        return attrs
 
     def set_available(self, is_available: bool):
         if is_available != self._available:
             self._available = is_available
             state = "ONLINE" if is_available else "UNAVAILABLE"
             _LOGGER.info("🔄 %s is now %s", self._attr_name, state)
-            self.schedule_update_ha_state()
+            self.async_schedule_update_ha_state()
 
     # @property
     # def available(self):
@@ -176,7 +175,7 @@ class TimerlyTimerEntity(Entity):
 
         except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
             _LOGGER.debug(
-                "❌ Failed to reach Timerly %s (%s:%d): %s",
+                "❌ Failed to reach Timerly %s (%s:%s): %s",
                 self._device.name,
                 self._device.address,
                 self._device.port,

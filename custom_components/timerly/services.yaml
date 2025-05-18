@@ -4,6 +4,8 @@ start_timer:
   target:
     entity:
       domain: timerly
+    device:
+      integration: timerly
   fields:
     seconds:
       name: Duration (seconds)

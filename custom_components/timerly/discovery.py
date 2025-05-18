@@ -106,13 +106,13 @@ async def async_setup_mdns(hass: HomeAssistant):
                 )
 
                 # # ✅ Trigger entity registration
-                if "component" in hass.data[DOMAIN]:
+                if "async_add_entities" in hass.data[DOMAIN]:
                     _LOGGER.info("📡 Passing off to try_add_new_entities")
                     hass.loop.call_soon_threadsafe(
                         lambda: hass.async_create_task(try_add_new_entities(hass))
                     )
                 else:
-                    _LOGGER.debug("⚠️ EntityComponent not yet initialized")
+                    _LOGGER.debug("⚠️ async_add_entities not yet initialized")
 
         elif state_change is ServiceStateChange.Removed:
             device = TimerlyDevice(

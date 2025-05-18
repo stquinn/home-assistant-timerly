@@ -23,7 +23,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "button"]
 
 # at the module level
 discovery_browser = None
@@ -45,3 +45,88 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+async def async_setup(hass: HomeAssistant, config: dict):
+    async def post_to_hosts(hosts, endpoint: str, payload: dict):
+        for host in hosts:
+            try:
+                uri = f"http://{host.address}:{host.port}/{endpoint}"
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(uri, json=payload, timeout=5) as response:
+                        if response.status != 200:
+                            _LOGGER.error(
+                                "Timerly %s failed for %s: %s",
+                                uri,
+                                host.name,
+                                response.status,
+                            )
+            except Exception as e:
+                _LOGGER.exception("Error sending %s to %s - %s", endpoint, host.name, e)
+
+    def get_matching_devices(entity_ids):
+        devices = get_discovered_devices().values()
+        # Determine which hosts match the selected entity_ids
+        if entity_ids:
+            hosts = [
+                h
+                for h in devices
+                if f"timerly.{h.name.lower().replace(' ', '_')}" in entity_ids
+            ]
+        else:
+            hosts = devices
+
+        return hosts
+
+    async def handle_start_timer(call: ServiceCall):
+        seconds = call.data["seconds"]
+        name = call.data.get("name", "custom-timer")
+        position = call.data.get("position", "BottomRight")
+        duration = call.data.get("duration", seconds)
+        voice = call.data.get("voice", True)
+        roar = call.data.get("roar", False)
+        tick = call.data.get("tick", False)
+        type_ = call.data.get("type", "DEFAULT")
+        entity_ids = call.data.get("entity_id", [])
+
+        payload = {
+            "seconds": seconds,
+            "position": position,
+            "duration": duration,
+            "voice": voice,
+            "type": type_,
+            "startTime": int(time.time() * 1000),
+        }
+
+        try:
+            await post_to_hosts(
+                get_matching_devices(call.data.get("entity_id", [])), "timer", payload
+            )
+        except Exception as e:
+            _LOGGER.exception("Error starting timer: %s", e)
+
+    async def handle_cancel_all(call: ServiceCall):
+        await post_to_hosts(
+            get_matching_devices(call.data.get("entity_id", [])), "cancel", {}
+        )
+
+    async def handle_doorbell(call: ServiceCall):
+        await post_to_hosts(
+            get_matching_devices(call.data.get("entity_id", [])), "doorbell", {}
+        )
+
+    async def handle_dismiss(call: ServiceCall):
+        name = call.data.get("name", "")
+        await post_to_hosts(
+            get_matching_devices(call.data.get("entity_id", [])),
+            "cancel",
+            {"name": name},
+        )
+
+    hass.services.async_register(DOMAIN, "start_timer", handle_start_timer)
+    hass.services.async_register(DOMAIN, "cancel_all", handle_cancel_all)
+    hass.services.async_register(DOMAIN, "doorbell", handle_doorbell)
+    hass.services.async_register(DOMAIN, "dismiss", handle_dismiss)
+
+
+    return True
+
