@@ -1,0 +1,83 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+*.egg
+*.manifest
+*.spec
+*.log
+
+# Virtual environment folders
+env/
+venv/
+.venv/
+
+# Pipenv, poetry
+Pipfile.lock
+poetry.lock
+
+# PyInstaller
+build/
+dist/
+
+# mypy, coverage, pytest
+.mypy_cache/
+.coverage
+coverage.xml
+.cache/
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# SQLite DBs, etc.
+*.sqlite3
+*.db
+
+# === macOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon?
+Icon?
+
+# Thumbnails
+._*
+
+# macOS metadata files
+.Spotlight-V100
+.Trashes
+
+# === VSCode ===
+.vscode/
+.history/
+.code-workspace
+
+# Local settings for debugging
+*.code-workspace
+*.sublime-workspace
+*.sublime-project
+
+# === Misc ===
+*.bak
+*.swp
+*.tmp
+*.orig
+*.~undo-tree~
+*.log
+
+# Secret files
+.env
+.env.*
+secrets*.json
+
+
+.DS_Store
+.vscode/

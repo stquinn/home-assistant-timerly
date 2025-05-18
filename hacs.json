@@ -1,0 +1,7 @@
+{
+  "name": "Timerly",
+  "content_in_root": false,
+  "domain": "timerly",
+  "zip_release": false,
+  "filename": "custom_components/timerly/manifest.json"
+}
