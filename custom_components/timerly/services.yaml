@@ -71,9 +71,6 @@ start_timer:
       selector:
         boolean:
 
-
-    
-
     start_time:
       name: Start Time (optional)
       description: Override the timer's start time as a Unix timestamp in milliseconds.
@@ -82,7 +79,6 @@ start_timer:
         number:
           min: 0
           mode: box
-
 
 cancel_all:
   name: Cancel All

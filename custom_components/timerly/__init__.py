@@ -79,7 +79,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
             hosts = [
                 h
                 for h in devices
-                if f"timerly.{h.name.lower().replace(' ', '_')}" in (entity_id_values)
+                if f"binary_sensor.{h['device'].name.lower().replace(' ', '_')}_timer"
+                in (entity_id_values)
             ]
         else:
             hosts = devices
