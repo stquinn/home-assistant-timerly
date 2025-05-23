@@ -61,7 +61,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                             _LOGGER.error(
                                 "Timerly %s failed for %s: %s",
                                 uri,
-                                host.name,
+                                host["device"].name,
                                 response.status,
                             )
             except Exception as e:

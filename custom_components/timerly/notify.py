@@ -6,6 +6,16 @@ from homeassistant.core import HomeAssistant
 from .discovery import get_discovered_devices
 import aiohttp
 
+from homeassistant.components.notify import (
+    ATTR_DATA,
+    ATTR_TARGET,
+    ATTR_TITLE,
+    ATTR_TITLE_DEFAULT,
+    PLATFORM_SCHEMA,
+    BaseNotificationService,
+)
+from homeassistant.const import ATTR_ICON
+
 _LOGGER = logging.getLogger(__name__)
 
 ATTR_POSITION = "position"
@@ -26,13 +36,15 @@ ATTR_NOTIFICATION_SOUND_ENABLED = "notificationSoundEnabled"
 ATTR_NOTIFICATION_SOUND = "notificationSound"
 ATTR_NOTIFICATION_SOUND_NAME = "notificationSoundName"
 
+
 from .const import DOMAIN
+
 
 # ✅ Home Assistant calls this to get your service
 async def async_get_service(hass: HomeAssistant, config, discovery_info=None):
     service_name = config.get("name", "timerly")
     service = TimerlyNotificationService()
-    
+
     # Save service name so we can unregister it later
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault("notify_services", []).append(service_name)
@@ -46,8 +58,9 @@ class TimerlyNotificationService(BaseNotificationService):
         self._session = aiohttp.ClientSession()
 
     async def async_send_message(self, message="", **kwargs):
-        title = kwargs.get("title", "")
-        data = kwargs.get("data", {})
+        title = kwargs.get(ATTR_TITLE, "")
+        text = kwargs.get(ATTR_TITLE, ATTR_TITLE_DEFAULT)
+        data = kwargs.get(ATTR_DATA, {})
 
         payload = {
             ATTR_NAME: data.get(ATTR_NAME, ""),
@@ -59,24 +72,38 @@ class TimerlyNotificationService(BaseNotificationService):
             ATTR_VOICE_MESSAGE_ENABLED: data.get(ATTR_VOICE_MESSAGE_ENABLED, "false"),
             ATTR_VOICE_MESSAGE: data.get(ATTR_VOICE_MESSAGE, ""),
             ATTR_VOICE_MESSAGE_DELAY: data.get(ATTR_VOICE_MESSAGE_DELAY, ""),
-            ATTR_FLASH_ANIMATION_ENABLED: data.get(ATTR_FLASH_ANIMATION_ENABLED, "false"),
-            ATTR_FLASH_ANIMATION_REPEAT_COUNT: data.get(ATTR_FLASH_ANIMATION_REPEAT_COUNT, ""),
+            ATTR_FLASH_ANIMATION_ENABLED: data.get(
+                ATTR_FLASH_ANIMATION_ENABLED, "false"
+            ),
+            ATTR_FLASH_ANIMATION_REPEAT_COUNT: data.get(
+                ATTR_FLASH_ANIMATION_REPEAT_COUNT, ""
+            ),
             ATTR_FLASH_ANIMATION_DELAY: data.get(ATTR_FLASH_ANIMATION_DELAY, ""),
-            ATTR_NOTIFICATION_SOUND_ENABLED: data.get(ATTR_NOTIFICATION_SOUND_ENABLED, "false"),
+            ATTR_NOTIFICATION_SOUND_ENABLED: data.get(
+                ATTR_NOTIFICATION_SOUND_ENABLED, "false"
+            ),
             ATTR_NOTIFICATION_SOUND: data.get(ATTR_NOTIFICATION_SOUND, ""),
-            ATTR_NOTIFICATION_SOUND_NAME: data.get(ATTR_NOTIFICATION_SOUND_NAME, "")
+            ATTR_NOTIFICATION_SOUND_NAME: data.get(ATTR_NOTIFICATION_SOUND_NAME, ""),
         }
 
-        await self.post_to_all_hosts("alert", payload)
+        await self.post_to_hosts(get_discovered_devices().values(), "alert", payload)
 
-    async def post_to_all_hosts(self, path: str, payload: dict):
-        devices = get_discovered_devices()
-        for host in devices.values():
+    async def post_to_hosts(self, hosts, endpoint: str, payload: dict):
+        for host in hosts:
             try:
-                uri = f"http://{host.address}:{host.port}/{path}"
-                _LOGGER.info("📨 Sending Timerly message to %s at %s", host.name, uri)
-                async with self._session.post(uri, json=payload, timeout=5) as response:
-                    if response.status != HTTPStatus.OK:
-                        _LOGGER.error("❌ Timerly failed: %s", await response.text())
+                uri = (
+                    f"http://{host['device'].address}:{host['device'].port}/{endpoint}"
+                )
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(uri, json=payload, timeout=5) as response:
+                        if response.status != 200:
+                            _LOGGER.error(
+                                "Timerly %s failed for %s: %s",
+                                uri,
+                                host["device"].name,
+                                response.status,
+                            )
             except Exception as e:
-                _LOGGER.exception("💥 Error sending to Timerly %s: %s", host.name, e)
+                _LOGGER.exception(
+                    "Error sending %s to %s - %s", endpoint, host["device"].name, e
+                )

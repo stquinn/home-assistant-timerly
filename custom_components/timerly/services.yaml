@@ -85,7 +85,9 @@ cancel_all:
   description: Cancel all active timers and notifications on one or more Timerly devices.
   target:
     entity:
-      domain: timerly
+      integration: timerly
+    device:
+      integration: timerly
   fields:
     target:
       name: Device Name
@@ -96,29 +98,21 @@ doorbell:
   description: Trigger a doorbell-style alert on all Timerly devices.
   target:
     entity:
-      domain: timerly
+      integration: timerly
+    device:
+      integration: timerly
 
 dismiss:
   name: Dismiss
   description: Dismiss a named notification from all devices.
   target:
     entity:
-      domain: timerly
+      integration: timerly
+    device:
+      integration: timerly
   fields:
     name:
       name: Notification Name
       required: true
 
-set_selected:
-  name: Select Timerly Device
-  description: Mark a discovered Timerly timer entity as selected or not.
-  target:
-    entity:
-      domain: timerly
-  fields:
-    target:
-      name: Device Name
-      required: true
-    selected:
-      name: Selected
-      default: true
+

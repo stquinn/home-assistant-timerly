@@ -36,8 +36,8 @@ async def async_setup_entry(
     hass.data[DOMAIN]["entry"] = entry
 
     # Run mDNS discovery
-    await mock_mdns(hass)
-    # discovery_browser = await async_setup_mdns(hass)
+    # await mock_mdns(hass)
+    discovery_browser = await async_setup_mdns(hass)
 
     # Add discovered devices as entities
     await try_add_new_entities(hass)
