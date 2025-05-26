@@ -1,4 +1,4 @@
-name: Create HACS Release
+name: Create Timerly Release
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -23,31 +23,56 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install tools
-        run: pip install semver
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Bump version and tag
+      - name: Install tools
+        run: |
+          pip install semver
+          npm install -g conventional-changelog-cli
+
+      - name: Get previous version
+        id: previous
+        run: echo "previous_version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
+      - name: Bump version in manifest.json
         id: bump
         run: |
           python .github/scripts/bump_version.py ${{ github.event.inputs.version_type }}
 
-      - name: Commit updated manifest.json
+      - name: Generate changelog entry
+        id: changelog
+        run: |
+          npx conventional-changelog -p angular -r 1 > RELEASE_NOTES.md
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          npx conventional-changelog -p angular -i CHANGELOG.md -s
+
+      - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add custom_components/**/manifest.json
-          git commit -m "🔖 Bump version to ${{ steps.bump.outputs.new_version }}"
+          git add custom_components/timerly/manifest.json CHANGELOG.md
+          git commit -m "🔖 Release v${{ steps.bump.outputs.new_version }}"
           git push origin HEAD
 
-      - name: Push new tag
+      - name: Tag version
         run: |
           git tag v${{ steps.bump.outputs.new_version }}
           git push origin v${{ steps.bump.outputs.new_version }}
 
-      - name: Create GitHub release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.bump.outputs.new_version }}
           name: v${{ steps.bump.outputs.new_version }}
           body: |
-            Automated release for v${{ steps.bump.outputs.new_version }}
+            ${{ steps.changelog.outputs.changelog }}
+
+            🔗 Full Changelog: https://github.com/stquinn/home-assistant-timerly/compare/${{ steps.previous.outputs.previous_version }}...v${{ steps.bump.outputs.new_version }}
