@@ -2,7 +2,6 @@ import json
 import sys
 import semver
 import os
-import subprocess
 
 MANIFEST_PATH = "custom_components/timerly/manifest.json"
 
@@ -16,22 +15,14 @@ def bump_version(version, bump_type):
     else:
         raise ValueError(f"Unsupported bump type: {bump_type}")
 
-def get_latest_git_tag():
-    try:
-        tags = subprocess.check_output(["git", "tag"], text=True).splitlines()
-        versions = [t for t in tags if t.startswith("v")]
-        versions = sorted(versions, key=lambda v: semver.VersionInfo.parse(v.lstrip("v")))
-        return versions[-1] if versions else "v0.0.0"
-    except Exception:
-        return "v0.0.0"
-
 def main():
     bump_type = sys.argv[1]
 
+    # Load current manifest
     with open(MANIFEST_PATH, "r") as f:
         manifest = json.load(f)
 
-    current_version = manifest["version"]
+    current_version = manifest["version"]           # ← use this as previous_version
     new_version = str(bump_version(current_version, bump_type))
     manifest["version"] = new_version
 
@@ -39,11 +30,10 @@ def main():
         json.dump(manifest, f, indent=2)
         f.write("\n")
 
-    previous_tag = get_latest_git_tag()
-
+    # Output both versions
     with open(os.environ["GITHUB_OUTPUT"], "a") as f:
         print(f"new_version={new_version}", file=f)
-        print(f"previous_version={previous_tag}", file=f)
+        print(f"previous_version=v{current_version}", file=f)
 
 if __name__ == "__main__":
     main()
