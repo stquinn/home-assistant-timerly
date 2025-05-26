@@ -29,7 +29,7 @@ jobs:
         run: |
           FROM=$(git rev-list --max-parents=0 HEAD)  # default to all commits
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            FROM="${{ github.event.pull_request.base.sha }}"
+            FROM=$(git merge-base HEAD v0.0.0-conventional)
           fi
           TO=$(git rev-parse HEAD)
           echo "Checking commits from $FROM to $TO"
