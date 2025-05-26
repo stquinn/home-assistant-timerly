@@ -33,10 +33,6 @@ jobs:
           pip install semver
           npm install -g conventional-changelog-cli
 
-      - name: Get previous version
-        id: previous
-        run: echo "previous_version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
-
       - name: Bump version in manifest.json
         id: bump
         run: |
@@ -75,4 +71,4 @@ jobs:
           body: |
             ${{ steps.changelog.outputs.changelog }}
 
-            🔗 Full Changelog: https://github.com/stquinn/home-assistant-timerly/compare/${{ steps.previous.outputs.previous_version }}...v${{ steps.bump.outputs.new_version }}
+            🔗 Full Changelog: https://github.com/stquinn/home-assistant-timerly/compare/${{ steps.bump.outputs.previous_version }}...v${{ steps.bump.outputs.new_version }}
