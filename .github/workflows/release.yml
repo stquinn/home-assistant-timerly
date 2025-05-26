@@ -38,7 +38,22 @@ jobs:
         run: |
           VERSION="v${{ steps.bump.outputs.new_version }}"
           DATE=$(date +%Y-%m-%d)
-          echo -e "## [$VERSION] - $DATE\n\n- See commit history for details.\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
+          PREVIOUS="${{ steps.bump.outputs.previous_version }}"
+
+          echo "## [$VERSION] - $DATE" > temp_changelog.md
+          echo "" >> temp_changelog.md
+
+          # Add commit messages between previous and current
+          git log --pretty=format:"- %s" ${PREVIOUS}..HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+
+          # Add compare link
+          echo "[Full Changelog](https://github.com/${{ github.repository }}/compare/${PREVIOUS}...${VERSION})" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+
+          # Prepend to existing changelog
+          cat temp_changelog.md CHANGELOG.md > temp && mv temp CHANGELOG.md
+
 
       - name: Commit version bump
         run: |
