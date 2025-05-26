@@ -27,6 +27,7 @@ class TimerlyTimerEntity(BinarySensorEntity):
         self._device = device
         # self._name = device.name
         self._end_utc = None
+        self._start_utc = None
         self._is_running = False
         self._selected = True
         self._last_props = {}
@@ -70,6 +71,7 @@ class TimerlyTimerEntity(BinarySensorEntity):
             "device": self._device.name,
             "selected": self._selected,
             "running": self._is_running,
+            "start_time_utc": self._start_utc.isoformat() if self._start_utc else None,
             "end_time_utc": self._end_utc.isoformat() if self._end_utc else None,
             **self._last_props,
         }
@@ -105,14 +107,14 @@ class TimerlyTimerEntity(BinarySensorEntity):
     def should_poll(self):
         return True
 
-    async def async_added_to_hass(self):
-        # Schedule a fast health check 2 seconds after startup
-        async def quick_check():
-            await asyncio.sleep(30)
-            is_online, _ = await self.ping(timeout=1)  # fast, short timeout
-            self.set_available(is_online)
+    # async def async_added_to_hass(self):
+    # Schedule a fast health check 2 seconds after startup
+    # async def quick_check():
+    #     await asyncio.sleep(30)
+    #     is_online, _ = await self.async_update()  # fast, short timeout
+    #     self.set_available(is_online)
 
-        asyncio.create_task(quick_check())
+    # asyncio.create_task(quick_check())
 
     async def async_update(self):
         # if not self._available:
@@ -133,6 +135,11 @@ class TimerlyTimerEntity(BinarySensorEntity):
                         data = await resp.json()
                         self._last_props = data.get("properties", {})
                         end_ms = data.get("endTime")
+                        start_ms = self._last_props.get("startTime")
+                        if start_ms:
+                            self._start_utc = datetime.fromtimestamp(
+                                start_ms / 1000, tz=timezone.utc
+                            )
                         if end_ms:
                             self._end_utc = datetime.fromtimestamp(
                                 end_ms / 1000, tz=timezone.utc
@@ -163,5 +170,3 @@ class TimerlyTimerEntity(BinarySensorEntity):
         except Exception as e:
             _LOGGER.warning("Failed to update Timerly %s: %s", self._device.name, e)
             self._is_running = False
-
-  
