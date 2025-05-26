@@ -40,8 +40,8 @@ class TimerlyTimerEntity(BinarySensorEntity):
         self._attr_should_poll = True
         self._attr_unique_id = f"timerly_{config_entry.entry_id}_{device.name}_timer"
         self._attr_config_entry_id = config_entry.entry_id  # ✅ Correct modern usage
-        _LOGGER.info("Config Entry is  %s", id(config_entry))
-        _LOGGER.info(
+        _LOGGER.debug("Config Entry is  %s", id(config_entry))
+        _LOGGER.debug(
             "Entity Unique IDS is %s / %s",
             self._attr_unique_id,
             self._attr_config_entry_id,
@@ -164,82 +164,4 @@ class TimerlyTimerEntity(BinarySensorEntity):
             _LOGGER.warning("Failed to update Timerly %s: %s", self._device.name, e)
             self._is_running = False
 
-    async def ping(self, timeout=PING_TIMEOUT_SEC) -> Tuple[bool, Optional[dict]]:
-        """
-        Try to reach the Timerly device and fetch its /timer data.
-
-        Returns:
-            (is_reachable: bool, timer_data: dict or None)
-        """
-
-        url = f"http://{self._device.address}:{self._device.port}/timer"
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=timeout) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        _LOGGER.debug(
-                            "👍 PING worked %s from Timerly %s",
-                            resp.status,
-                            self._device.name,
-                        )
-                        return True, data
-                    elif resp.status == 404:
-                        # Device reachable, but timer not running
-                        _LOGGER.debug(
-                            "👍 PING worked %s from Timerly %s",
-                            resp.status,
-                            self._device.name,
-                        )
-                        return True, {}
-                    else:
-                        _LOGGER.debug(
-                            "❌ Unexpected HTTP status %s from Timerly %s",
-                            resp.status,
-                            self._device.name,
-                        )
-                        return False, None
-
-        except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
-            _LOGGER.debug(
-                "❌ Failed to reach Timerly %s (%s:%s): %s",
-                self._device.name,
-                self._device.address,
-                self._device.port,
-                e,
-            )
-            return False, None
-
-
-# async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
-#     _LOGGER.info("✅ async_setup_entry called for Timerly sensor platform")
-#     _LOGGER.info("🔍 hass is hass_ref? %s", hass is state.hass_ref)
-#     # Store the add_entities callback so discovery can call us later
-#     hass.data[DOMAIN]["add_entities"] = async_add_entities
-
-
-#     async def delayed_try():
-#         await asyncio.sleep(5)
-#         _LOGGER.info("🔁 Retrying device scan after delay")
-#         await try_add_new_entities(hass, async_add_entities)
-
-#     hass.async_create_task(delayed_try())
-
-
-# async def try_add_new_entities(hass: HomeAssistant, async_add_entities):
-#     """Register new entities for newly discovered devices."""
-#     devices = get_discovered_devices()
-#     _LOGGER.info("📦 Found %d devices in discovered list", len(devices))
-#     new_entities = []
-
-#     for name, device in devices.items():
-#         if device.unique_id in already_added:
-#             continue
-#         entity = TimerlyTimerEntity(device)
-#         new_entities.append(entity)
-#         already_added.add(device.unique_id)
-
-#     if new_entities:
-#         async_add_entities(new_entities)
-#         _LOGGER.info("✅ Added %d new Timerly sensors", len(new_entities))
+  
