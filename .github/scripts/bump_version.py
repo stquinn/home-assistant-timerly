@@ -1,0 +1,35 @@
+import json
+import sys
+import semver
+import os
+
+MANIFEST_PATH = "custom_components/YOUR_COMPONENT_NAME/manifest.json"
+
+def bump_version(version, bump_type):
+    if bump_type == "patch":
+        return semver.VersionInfo.parse(version).bump_patch()
+    elif bump_type == "minor":
+        return semver.VersionInfo.parse(version).bump_minor()
+    elif bump_type == "major":
+        return semver.VersionInfo.parse(version).bump_major()
+    else:
+        raise ValueError(f"Unsupported bump type: {bump_type}")
+
+def main():
+    bump_type = sys.argv[1]
+
+    with open(MANIFEST_PATH, "r") as f:
+        manifest = json.load(f)
+
+    current_version = manifest["version"]
+    new_version = str(bump_version(current_version, bump_type))
+    manifest["version"] = new_version
+
+    with open(MANIFEST_PATH, "w") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
+
+    print(f"::set-output name=new_version::{new_version}")
+
+if __name__ == "__main__":
+    main()
