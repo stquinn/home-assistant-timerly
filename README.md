@@ -13,5 +13,5 @@ Timerly is a Home Assistant custom integration for network-discovered display de
 ## Installation (via HACS)
 
 1. In HACS, go to Integrations → ⋮ → Custom repositories.
-2. Add the repo: https://github.com/yourusername/home-assistant-timerly
+2. Add the repo: https://github.com/stquinn/home-assistant-timerly
 3. Install, restart HA, and use the integration.
