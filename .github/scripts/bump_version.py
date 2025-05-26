@@ -1,39 +1,49 @@
 import json
-import sys
 import semver
 import os
+import subprocess
 
 MANIFEST_PATH = "custom_components/timerly/manifest.json"
 
-def bump_version(version, bump_type):
+def bump_version(current_version: str, bump_type: str) -> str:
+    parsed = semver.VersionInfo.parse(current_version)
     if bump_type == "patch":
-        return semver.VersionInfo.parse(version).bump_patch()
+        return str(parsed.bump_patch())
     elif bump_type == "minor":
-        return semver.VersionInfo.parse(version).bump_minor()
+        return str(parsed.bump_minor())
     elif bump_type == "major":
-        return semver.VersionInfo.parse(version).bump_major()
+        return str(parsed.bump_major())
     else:
         raise ValueError(f"Unsupported bump type: {bump_type}")
 
-def main():
-    bump_type = sys.argv[1]
+def get_bump_type_from_commits() -> str:
+    try:
+        output = subprocess.check_output([
+            "npx", "conventional-recommended-bump", "-p", "angular", "-r", "0"
+        ], stderr=subprocess.DEVNULL, text=True)
+        for line in output.splitlines():
+            if '"releaseType":' in line:
+                return line.split('"')[3]
+        raise ValueError("Could not parse release type from conventional-recommended-bump")
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError("Failed to run conventional-recommended-bump") from e
 
-    # Load current manifest
+def main():
     with open(MANIFEST_PATH, "r") as f:
         manifest = json.load(f)
 
-    current_version = manifest["version"]           # ← use this as previous_version
-    new_version = str(bump_version(current_version, bump_type))
+    current_version = manifest["version"]
+    bump_type = get_bump_type_from_commits()
+    new_version = bump_version(current_version, bump_type)
     manifest["version"] = new_version
 
     with open(MANIFEST_PATH, "w") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")
 
-    # Output both versions
     with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-        print(f"new_version={new_version}", file=f)
-        print(f"previous_version=v{current_version}", file=f)
+        f.write(f"new_version={new_version}\n")
+        f.write(f"previous_version=v{current_version}\n")
 
 if __name__ == "__main__":
     main()
