@@ -1,3 +1,9 @@
+## [v0.0.12] - 2025-05-26
+
+- Update release.yml
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.0.11...v0.0.12)
+
 ## [v0.0.11] - 2025-05-26
 
 - Update release.yml
