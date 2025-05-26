@@ -2,11 +2,6 @@ name: Create Timerly Release
 
 on:
   workflow_dispatch:
-    inputs:
-      version_type:
-        description: 'Version bump type (patch, minor, major)'
-        required: true
-        default: 'patch'
 
 jobs:
   release:
@@ -17,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 🔥 ensures tags are available if needed
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,26 +28,38 @@ jobs:
       - name: Install tools
         run: |
           pip install semver
-          npm install -g conventional-changelog-cli
+          npm install -g conventional-changelog-cli conventional-recommended-bump
+
+      - name: Determine bump type from commits
+        id: bump_type
+        run: |
+          echo "bump_type=$(npx conventional-recommended-bump -p angular -r 0 | grep '"releaseType":' | cut -d '"' -f4)" >> $GITHUB_OUTPUT
 
       - name: Bump version in manifest.json
         id: bump
         run: |
-          python .github/scripts/bump_version.py ${{ github.event.inputs.version_type }}
+          python .github/scripts/bump_version.py ${{ steps.bump_type.outputs.bump_type }}
 
-      - name: Generate changelog entry
-        id: changelog
-        run: |
-          npx conventional-changelog -p angular -r 1 > RELEASE_NOTES.md
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Update CHANGELOG.md
+      - name: Generate changelog section
         run: |
           npx conventional-changelog -p angular -i CHANGELOG.md -s
 
-      - name: Commit changes
+      - name: Append full compare link to changelog
+        run: |
+          VERSION="v${{ steps.bump.outputs.new_version }}"
+          PREVIOUS="${{ steps.bump.outputs.previous_version }}"
+          LINK="[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/${PREVIOUS}...${VERSION})"
+          sed -i "/## \[$VERSION\]/a\\\n$LINK\n" CHANGELOG.md
+
+      - name: Generate release notes file
+        run: |
+          VERSION="v${{ steps.bump.outputs.new_version }}"
+          DATE=$(date +%Y-%m-%d)
+          PREVIOUS="${{ steps.bump.outputs.previous_version }}"
+          LINK="🔗 Full Changelog: https://github.com/stquinn/home-assistant-timerly/compare/${PREVIOUS}...${VERSION}"
+          echo -e "## [$VERSION] - $DATE\n\n$(npx conventional-changelog -p angular -r 1)\n\n$LINK" > RELEASE_NOTES.md
+
+      - name: Commit version + changelog
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -68,7 +77,4 @@ jobs:
         with:
           tag_name: v${{ steps.bump.outputs.new_version }}
           name: v${{ steps.bump.outputs.new_version }}
-          body: |
-            ${{ steps.changelog.outputs.changelog }}
-
-            🔗 Full Changelog: https://github.com/stquinn/home-assistant-timerly/compare/${{ steps.bump.outputs.previous_version }}...v${{ steps.bump.outputs.new_version }}
+          body_path: RELEASE_NOTES.md
