@@ -45,6 +45,7 @@ jobs:
             echo
             git log --pretty=format:"- %s" "${PREVIOUS}..HEAD"
             echo
+            echo
             echo "[Full Changelog](https://github.com/${{ github.repository }}/compare/${PREVIOUS}...${VERSION})"
             echo
           } > temp_changelog.md
