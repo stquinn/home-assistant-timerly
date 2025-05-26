@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # ensures full commit history for diff
+          fetch-depth: 0  # ensures full commit history
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -27,8 +27,9 @@ jobs:
 
       - name: Validate commit messages
         run: |
-          FROM=$(git rev-list --max-parents=0 HEAD)  # default to all commits
           if [ "${{ github.event_name }}" = "pull_request" ]; then
+            FROM="${{ github.event.pull_request.base.sha }}"
+          else
             FROM=$(git merge-base HEAD v0.0.0-conventional)
           fi
           TO=$(git rev-parse HEAD)
