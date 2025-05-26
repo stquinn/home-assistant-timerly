@@ -125,7 +125,11 @@ class TimerlyTimerEntity(BinarySensorEntity):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=UPDATE_TIMEOUT_SEC) as resp:
                     if resp.status == 200:
-                        "👍 PING worked %s from Timerly %s",
+                        _LOGGER.debug(
+                            "👍 PING worked %s from Timerly %s",
+                            resp.status,
+                            self._device.name,
+                        )
                         data = await resp.json()
                         self._last_props = data.get("properties", {})
                         end_ms = data.get("endTime")
@@ -142,10 +146,10 @@ class TimerlyTimerEntity(BinarySensorEntity):
                         self._last_props = {}
                         self.set_available(True)
                     _LOGGER.debug(
-                            "👍 PING worked %s from Timerly %s",
-                            resp.status,
-                            self._device.name,
-                        )
+                        "👍 PING worked %s from Timerly %s",
+                        resp.status,
+                        self._device.name,
+                    )
         except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
             if self._available:  # only log the first time
                 _LOGGER.warning(

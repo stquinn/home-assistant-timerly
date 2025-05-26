@@ -32,7 +32,7 @@ discovery_browser = None
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     global discovery_browser
-    _LOGGER.info("✅ async_setup_entry called for Timerly")
+    _LOGGER.debug("✅ async_setup_entry called for Timerly")
 
     # Init first
     hass.data.setdefault(DOMAIN, {})

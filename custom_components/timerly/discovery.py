@@ -21,7 +21,9 @@ class TimerlyDevice:
         self.name = clean_name
         self.address = address
         self.port = port
-        self.unique_id = f"timerly_{self.name.lower().replace('.', '_').replace(' ', '_')}"
+        self.unique_id = (
+            f"timerly_{self.name.lower().replace('.', '_').replace(' ', '_')}"
+        )
 
 
 def get_discovered_devices():
@@ -48,7 +50,7 @@ def add_discovered_device(device) -> None:
         _LOGGER.debug("🔄 Updated last_seen for %s", device.name)
     else:
         discovered[device.name] = {"device": device, "last_seen": now}
-        _LOGGER.info("📦 Added new Timerly device: %s", device.name)
+        _LOGGER.debug("📦 Added new Timerly device: %s", device.name)
 
     _LOGGER.debug("📦 Discovery cache now has %d devices", len(discovered))
 
@@ -67,7 +69,7 @@ async def mock_mdns(hass: HomeAssistant):
 
     # # ✅ Trigger entity registration
     if "component" in hass.data[DOMAIN]:
-        _LOGGER.info("📡 Passing off to try_add_new_entities")
+        _LOGGER.debug("📡 Passing off to try_add_new_entities")
         hass.loop.call_soon_threadsafe(
             lambda: hass.async_create_task(try_add_new_entities(hass))
         )
