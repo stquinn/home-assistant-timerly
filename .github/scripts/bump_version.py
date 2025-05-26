@@ -3,7 +3,7 @@ import sys
 import semver
 import os
 
-MANIFEST_PATH = "custom_components/timerly/manifest.json"
+MANIFEST_PATH = "custom_components/YOUR_COMPONENT_NAME/manifest.json"
 
 def bump_version(version, bump_type):
     if bump_type == "patch":
@@ -29,7 +29,9 @@ def main():
         json.dump(manifest, f, indent=2)
         f.write("\n")
 
-    print(f"::set-output name=new_version::{new_version}")
+    # ✅ Set GitHub Actions output using the environment file
+    with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+        print(f"new_version={new_version}", file=f)
 
 if __name__ == "__main__":
     main()
