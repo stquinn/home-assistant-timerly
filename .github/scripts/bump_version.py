@@ -21,9 +21,9 @@ def get_latest_git_tag():
         tags = subprocess.check_output(["git", "tag"], text=True).splitlines()
         versions = [t for t in tags if t.startswith("v")]
         versions = sorted(versions, key=lambda v: semver.VersionInfo.parse(v.lstrip("v")))
-        return versions[-1] if versions else None
-    except Exception as e:
-        return None
+        return versions[-1] if versions else "v0.0.0"
+    except Exception:
+        return "v0.0.0"
 
 def main():
     bump_type = sys.argv[1]
@@ -39,7 +39,7 @@ def main():
         json.dump(manifest, f, indent=2)
         f.write("\n")
 
-    previous_tag = get_latest_git_tag() or "v0.0.0"
+    previous_tag = get_latest_git_tag()
 
     with open(os.environ["GITHUB_OUTPUT"], "a") as f:
         print(f"new_version={new_version}", file=f)
