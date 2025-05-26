@@ -1,7 +1,7 @@
 {
   "domain": "timerly",
   "name": "Timerly",
-  "version": "0.0.13",
+  "version": "0.1.0",
   "documentation": "https://github.com/stquinn/home-assistant-timerly",
   "dependencies": [
     "zeroconf"
