@@ -3,7 +3,7 @@ import sys
 import semver
 import os
 
-MANIFEST_PATH = "custom_components/YOUR_COMPONENT_NAME/manifest.json"
+MANIFEST_PATH = "custom_components/timerly/manifest.json"
 
 def bump_version(version, bump_type):
     if bump_type == "patch":
