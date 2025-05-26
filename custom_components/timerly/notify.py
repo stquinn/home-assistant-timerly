@@ -59,12 +59,15 @@ class TimerlyNotificationService(BaseNotificationService):
 
     async def async_send_message(self, message="", **kwargs):
         title = kwargs.get(ATTR_TITLE, "")
-        text = kwargs.get(ATTR_TITLE, ATTR_TITLE_DEFAULT)
-        data = kwargs.get(ATTR_DATA, {})
+        dictValue = kwargs.get(ATTR_DATA)
+        if dictValue is None:
+            data = {}
+        else:
+            data = dictValue
 
         payload = {
             ATTR_NAME: data.get(ATTR_NAME, ""),
-            ATTR_TYPE: data.get(ATTR_TYPE, ""),
+            ATTR_TYPE: data.get(ATTR_TYPE, "INFO"),
             ATTR_POSITION: data.get(ATTR_POSITION, "BottomRight"),
             ATTR_TITLE: title,
             ATTR_TEXT: message,
