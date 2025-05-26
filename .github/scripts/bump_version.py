@@ -19,7 +19,10 @@ def bump_version(current_version: str, bump_type: str) -> str:
 def get_bump_type_from_commits() -> str:
     try:
         output = subprocess.check_output([
-            "npx", "conventional-recommended-bump", "-p", "angular", "-r", "0"
+            "npx", "conventional-recommended-bump",
+            "-p", "angular",
+            "--tag-prefix", "v",
+            "--from", "v0.0.0-conventional"
         ], stderr=subprocess.DEVNULL, text=True)
         for line in output.splitlines():
             if '"releaseType":' in line:
@@ -27,6 +30,7 @@ def get_bump_type_from_commits() -> str:
         raise ValueError("Could not parse release type from conventional-recommended-bump")
     except subprocess.CalledProcessError as e:
         raise RuntimeError("Failed to run conventional-recommended-bump") from e
+
 
 def main():
     with open(MANIFEST_PATH, "r") as f:
