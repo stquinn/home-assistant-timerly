@@ -1,3 +1,9 @@
+## [v0.2.0] - 2025-05-26
+
+- feat: add start_time_utc as a param
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.1.0...v0.2.0)
+
 ## [v0.1.0] - 2025-05-26
 
 
