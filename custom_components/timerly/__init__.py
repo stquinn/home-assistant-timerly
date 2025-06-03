@@ -18,6 +18,9 @@ from .discovery import get_discovered_devices, add_discovered_device
 from . import state  # ✅ import the whole
 from .state import try_add_new_entities
 
+from datetime import datetime
+from homeassistant.util import dt as dt_util
+
 
 from .const import DOMAIN
 
@@ -90,6 +93,20 @@ async def async_setup(hass: HomeAssistant, config: dict):
     async def handle_start_timer(call: ServiceCall):
         seconds = call.data.get("seconds", -1)
         minutes = call.data.get("minutes", -1)
+        endTimeString = call.data.get("endTime")
+        if endTimeString:
+            now = dt_util.now()
+            today = now.date()
+            parsedTime = datetime.strptime(endTimeString, "%H:%M:%S").time()
+            endTime = dt_util.as_local(datetime.combine(today, parsedTime))
+
+            delta = endTime - now
+            seconds = delta.total_seconds()
+            _LOGGER.debug(
+                "Endtime  parameter specified (%s) and is overriding seconds. Seconds is now %s",
+                endTime,
+                seconds,
+            )
 
         if minutes > 0:
             seconds = minutes * 60
@@ -98,10 +115,11 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 minutes,
                 seconds,
             )
-
-        if seconds < 0:
-            _LOGGER.error("Neither minutes or seconds specified")
-            raise Exception("Must specify one of minutes or seconds")
+        if seconds <= 0:
+            _LOGGER.error(
+                "Neither a time in the future, minutes or seconds were specified"
+            )
+            raise Exception("Must specify one of endTime, minutes or seconds")
 
         duration = call.data.get("duration", seconds)
         position = call.data.get("position", "BottomRight")

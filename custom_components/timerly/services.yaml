@@ -9,7 +9,7 @@ start_timer:
   fields:
     seconds:
       name: Duration (seconds)
-      description: The length of the timer in seconds.
+      description: The length of the timer in seconds.(one of seconds, minutes or endTime are required)
       required: false
       default: 30
       selector:
@@ -20,7 +20,18 @@ start_timer:
           unit_of_measurement: seconds
     minutes:
       name: Duration (Minutes)
-      description: Overrides seconds
+      description: Overrides seconds (one of seconds, minutes or endTime are required)
+      required: false
+      default: ""
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: minutes
+
+    endTime:
+      name: End Time
+      description: The Time in the future at which the time shoould end (one of seconds, minutes or endTime are required)
       required: false
       default: ""
       selector:
