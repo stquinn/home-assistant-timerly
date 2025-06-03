@@ -102,6 +102,14 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
             delta = endTime - now
             seconds = delta.total_seconds()
+            if seconds < 0:
+                _LOGGER.error(
+                    "Time specified is in the past - Specified %s, and its now %s",
+                    endTimeString,
+                    now.time(),
+                )
+                raise Exception("Must specify an endtime in the future")
+
             _LOGGER.debug(
                 "Endtime  parameter specified (%s) and is overriding seconds. Seconds is now %s",
                 endTime,
