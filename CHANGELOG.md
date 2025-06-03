@@ -1,3 +1,9 @@
+## [v0.4.0] - 2025-06-03
+
+
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.3.0...v0.4.0)
+
 ## [v0.3.0] - 2025-06-03
 
 - Add Minute Parameter
