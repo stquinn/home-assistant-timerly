@@ -88,16 +88,26 @@ async def async_setup(hass: HomeAssistant, config: dict):
         return hosts
 
     async def handle_start_timer(call: ServiceCall):
-        seconds = call.data["seconds"]
-        name = call.data.get("name", "custom-timer")
+        seconds = call.data.get("seconds", -1)
+        minutes = call.data.get("minutes", -1)
+
+        if minutes > 0:
+            seconds = minutes * 60
+            _LOGGER.debug(
+                "Minutes parameter specified (%s) and is overriding seconds. Seconds is now %s",
+                minutes,
+                seconds,
+            )
+
+        if seconds < 0:
+            _LOGGER.error("Neither minutes or seconds specified")
+            raise Exception("Must specify one of minutes or seconds")
+
+        duration = call.data.get("duration", seconds)
         position = call.data.get("position", "BottomRight")
         duration = call.data.get("duration", seconds)
         voice = call.data.get("voice", True)
-        roar = call.data.get("roar", False)
-        tick = call.data.get("tick", False)
         type_ = call.data.get("type", "DEFAULT")
-        entity_ids = call.data.get("entity_id", [])
-
         payload = {
             "seconds": seconds,
             "position": position,

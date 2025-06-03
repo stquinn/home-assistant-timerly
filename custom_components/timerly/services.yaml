@@ -10,7 +10,7 @@ start_timer:
     seconds:
       name: Duration (seconds)
       description: The length of the timer in seconds.
-      required: true
+      required: false
       default: 30
       selector:
         number:
@@ -18,6 +18,16 @@ start_timer:
           max: 7200
           step: 60
           unit_of_measurement: seconds
+    minutes:
+      name: Duration (Minutes)
+      description: Overrides seconds
+      required: false
+      default: ""
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: minutes
 
     type:
       name: Timer Type
