@@ -1,3 +1,9 @@
+## [v0.5.0] - 2025-06-03
+
+- Added endTime Param
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.4.0...v0.5.0)
+
 ## [v0.4.0] - 2025-06-03
 
 
