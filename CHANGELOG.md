@@ -1,3 +1,9 @@
+## [v0.7.0] - 2025-06-04
+
+
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.6.0...v0.7.0)
+
 ## [v0.6.0] - 2025-06-04
 
 - Implement Timer Type Select Entity
