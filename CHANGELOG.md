@@ -1,3 +1,9 @@
+## [v0.6.0] - 2025-06-04
+
+- Implement Timer Type Select Entity
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.5.1...v0.6.0)
+
 ## [v0.5.1] - 2025-06-03
 
 - Added error handling for endtime in the past
