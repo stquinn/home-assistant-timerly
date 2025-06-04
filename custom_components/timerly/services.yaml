@@ -114,6 +114,11 @@ cancel_all:
       name: Device Name
       required: false
 
+refresh_all:
+  name: Refresh All
+  description: Refresh all Timer Entities
+
+
 doorbell:
   name: Doorbell Notification
   description: Trigger a doorbell-style alert on all Timerly devices.

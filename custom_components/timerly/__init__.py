@@ -1,28 +1,19 @@
-import logging
-import aiohttp
-import time
 from datetime import datetime
-from datetime import timedelta
+import logging
+import time
 
-from homeassistant.core import HomeAssistant, ServiceCall
+import aiohttp
+
+from custom_components.timerly import state  # ✅ import the whole
+from custom_components.timerly.const import DOMAIN
+from custom_components.timerly.discovery import get_discovered_devices
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers.entity_platform import async_get_platforms
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 
 # from homeassistant.config_entries import async_unload_platforms
-from homeassistant.helpers.event import async_track_time_interval
-
-from .discovery import async_setup_mdns, mock_mdns
-from .discovery import get_discovered_devices, add_discovered_device
-
-from . import state  # ✅ import the whole
-from .state import try_add_new_entities
-
-from datetime import datetime
 from homeassistant.util import dt as dt_util
-
-
-from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +81,37 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         return hosts
 
+    async def handle_refresh_all(call):
+        entity_registry = async_get_entity_registry(hass)
+
+        # Get only binary_sensors from the 'timerly' integration
+        binary_sensor_ids = [
+            entry.entity_id
+            for entry in entity_registry.entities.values()
+            if entry.platform == DOMAIN and entry.entity_id.startswith("binary_sensor.")
+        ]
+
+        platforms = async_get_platforms(hass, DOMAIN)
+        if not platforms:
+            _LOGGER.error("No platforms found for domain '%s'", DOMAIN)
+            return
+
+        for entity_id in binary_sensor_ids:
+            entity = None
+            for platform in platforms:
+                entity = platform.entities.get(entity_id)
+                if entity:
+                    break  # found it!
+
+            if entity:
+                await entity.async_update()
+                entity.async_write_ha_state()
+                _LOGGER.debug("✅ Refreshed %s", entity_id)
+            else:
+                _LOGGER.warning(
+                    "⚠️ Entity %s not found in any timerly platform", entity_id
+                )
+
     async def handle_start_timer(call: ServiceCall):
         seconds = call.data.get("seconds", -1)
         minutes = call.data.get("minutes", -1)
@@ -147,15 +169,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
             await post_to_hosts(
                 get_matching_devices(call.data.get("entity_id", [])), "timer", payload
             )
-            for entity_id in call.data.get("entity_id", []):
-                _LOGGER.debug("Rrefreshing timer: %s", entity_id)
-
-                await hass.services.async_call(
-                    "homeassistant",
-                    "update_entity",
-                    {"entity_id": entity_id},
-                    blocking=True,
-                )
+            await handle_refresh_all(None)
         except Exception as e:
             _LOGGER.exception("Error starting timer: %s", e)
 
@@ -163,15 +177,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         await post_to_hosts(
             get_matching_devices(call.data.get("entity_id", [])), "cancel", {}
         )
-        for entity_id in call.data.get("entity_id", []):
-            _LOGGER.debug("Rrefreshing timer: %s", entity_id)
-
-            await hass.services.async_call(
-                "homeassistant",
-                "update_entity",
-                {"entity_id": entity_id},
-                blocking=True,
-            )
+        await handle_refresh_all(None)
 
     async def handle_doorbell(call: ServiceCall):
         await post_to_hosts(
@@ -190,5 +196,6 @@ async def async_setup(hass: HomeAssistant, config: dict):
     hass.services.async_register(DOMAIN, "cancel_all", handle_cancel_all)
     hass.services.async_register(DOMAIN, "doorbell", handle_doorbell)
     hass.services.async_register(DOMAIN, "dismiss", handle_dismiss)
+    hass.services.async_register(DOMAIN, "refresh_all", handle_refresh_all)
 
     return True
