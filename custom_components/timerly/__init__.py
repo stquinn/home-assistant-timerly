@@ -27,7 +27,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 # PLATFORMS = ["binary_sensor", "button"]
-PLATFORMS = ["binary_sensor"]
+PLATFORMS = ["binary_sensor", "select"]
 
 # at the module level
 discovery_browser = None

@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "select": {
+      "timer_type": {
+        "state": {
+          "DEFAULT": "Default",
+          "BEDTIME": "Bedtime",
+          "SCHOOL": "School",
+          "CODING": "Coding",
+          "RUGBY": "Rugby",
+          "SCREEN_BREAK": "Screen Break",
+          "SWITCH_TIME": "Switch Time",
+          "CAR": "Car"
+        }
+      }
+    }
+  }
+}

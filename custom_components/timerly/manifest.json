@@ -14,7 +14,8 @@
   "config_flow": true,
   "platforms": [
     "binary_sensor",
-    "notify"
+    "notify",
+    "select"
   ],
   "image": "https://raw.githubusercontent.com/stquinn/home-assistant-timerly/main/custom_components/timerly/logo.png"
 }
