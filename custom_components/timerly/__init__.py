@@ -147,6 +147,15 @@ async def async_setup(hass: HomeAssistant, config: dict):
             await post_to_hosts(
                 get_matching_devices(call.data.get("entity_id", [])), "timer", payload
             )
+            for entity_id in call.data.get("entity_id", []):
+                _LOGGER.debug("Rrefreshing timer: %s", entity_id)
+
+                await hass.services.async_call(
+                    "homeassistant",
+                    "update_entity",
+                    {"entity_id": entity_id},
+                    blocking=True,
+                )
         except Exception as e:
             _LOGGER.exception("Error starting timer: %s", e)
 
@@ -154,6 +163,15 @@ async def async_setup(hass: HomeAssistant, config: dict):
         await post_to_hosts(
             get_matching_devices(call.data.get("entity_id", [])), "cancel", {}
         )
+        for entity_id in call.data.get("entity_id", []):
+            _LOGGER.debug("Rrefreshing timer: %s", entity_id)
+
+            await hass.services.async_call(
+                "homeassistant",
+                "update_entity",
+                {"entity_id": entity_id},
+                blocking=True,
+            )
 
     async def handle_doorbell(call: ServiceCall):
         await post_to_hosts(
