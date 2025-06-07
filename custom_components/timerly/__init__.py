@@ -4,9 +4,6 @@ import time
 
 import aiohttp
 
-from custom_components.timerly import state  # ✅ import the whole
-from custom_components.timerly.const import DOMAIN
-from custom_components.timerly.discovery import get_discovered_devices
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.entity_platform import async_get_platforms
@@ -15,17 +12,18 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 # from homeassistant.config_entries import async_unload_platforms
 from homeassistant.util import dt as dt_util
 
+from . import state  # ✅ import the whole
+from .const import DOMAIN
+from .discovery import get_discovered_devices
+from .TimerlyDevice import TimerlyDevice
+
 _LOGGER = logging.getLogger(__name__)
 
 # PLATFORMS = ["binary_sensor", "button"]
 PLATFORMS = ["binary_sensor", "select"]
 
-# at the module level
-discovery_browser = None
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    global discovery_browser
     _LOGGER.debug("✅ async_setup_entry called for Timerly")
 
     # Init first
@@ -49,15 +47,17 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 uri = (
                     f"http://{host['device'].address}:{host['device'].port}/{endpoint}"
                 )
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(uri, json=payload, timeout=5) as response:
-                        if response.status != 200:
-                            _LOGGER.error(
-                                "Timerly %s failed for %s: %s",
-                                uri,
-                                host["device"].name,
-                                response.status,
-                            )
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.post(uri, json=payload, timeout=5) as response,
+                ):
+                    if response.status != 200:
+                        _LOGGER.error(
+                            "Timerly %s failed for %s: %s",
+                            uri,
+                            host["device"].name,
+                            response.status,
+                        )
             except Exception as e:
                 _LOGGER.exception(
                     "Error sending %s to %s - %s", endpoint, host["device"].name, e

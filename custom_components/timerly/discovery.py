@@ -1,29 +1,19 @@
+from datetime import datetime
 import logging
-from homeassistant.core import HomeAssistant
-from homeassistant.components.zeroconf import async_get_instance
-from zeroconf import ServiceBrowser, ServiceStateChange
-from homeassistant.components import zeroconf
-from .const import DOMAIN
-from . import state
-from .state import try_add_new_entities
-from datetime import datetime, timedelta
-from homeassistant.helpers.device_registry import format_mac
 
+from zeroconf import ServiceBrowser, ServiceStateChange
+
+from homeassistant.components import zeroconf
+from homeassistant.components.zeroconf import async_get_instance
+from homeassistant.core import HomeAssistant
+
+from . import state
+from .const import DOMAIN
+from .coordinator import TimerlyCoordinator
+from .entity import TimerlyTimerEntity
+from .TimerlyDevice import TimerlyDevice
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class TimerlyDevice:
-    def __init__(self, name: str, address: str, port: int):
-        base_name = name.rstrip(".")
-        raw_name = name.removesuffix("._tvtimer._tcp.local.")
-        clean_name = raw_name.removeprefix("Timerly ").strip()
-        self.name = clean_name
-        self.address = address
-        self.port = port
-        self.unique_id = (
-            f"timerly_{self.name.lower().replace('.', '_').replace(' ', '_')}"
-        )
 
 
 def get_discovered_devices():
@@ -124,3 +114,45 @@ async def async_setup_mdns(hass: HomeAssistant):
             _LOGGER.info("❌ Timerly device removed: %s", device.name)
 
     return ServiceBrowser(zc, ["_tvtimer._tcp.local."], handlers=[service_handler])
+
+
+async def try_add_new_entities(hass: HomeAssistant):
+    discovered = get_discovered_devices()
+    async_add_entities = hass.data[DOMAIN].get("async_add_entities")
+    entry = hass.data[DOMAIN]["entry"]
+    existing_entity_ids = hass.data[DOMAIN].setdefault("entities", [])
+    coordinators = hass.data[DOMAIN].setdefault("coordinators", {})
+
+    new_entities = []
+
+    for name, device_info in list(discovered.items()):
+        _LOGGER.info("🆕 Checking %s", name)
+
+        device = device_info["device"] if isinstance(device_info, dict) else device_info
+
+        # Reuse or create new coordinator
+        if name not in coordinators:
+            _LOGGER.info("🧠 Creating new coordinator for %s", name)
+            coordinator = TimerlyCoordinator(hass, device)
+            await coordinator.async_config_entry_first_refresh()
+            coordinators[name] = coordinator
+        else:
+            coordinator = coordinators[name]
+            _LOGGER.debug("♻️ Reusing existing coordinator for %s", name)
+
+        # Create entity
+        entity = TimerlyTimerEntity(coordinator, entry)
+        unique_id = entity.unique_id
+
+        if unique_id not in existing_entity_ids:
+            _LOGGER.info("🆕 Registering entity %s", unique_id)
+            new_entities.append(entity)
+            existing_entity_ids.append(unique_id)
+        else:
+            _LOGGER.debug("🧩 Entity already known: %s", unique_id)
+
+    _LOGGER.debug("📦 Entity cache now has %d entities", len(existing_entity_ids))
+
+    if new_entities:
+        _LOGGER.info("🧱 Adding %d new Timerly entities", len(new_entities))
+        async_add_entities(new_entities)
