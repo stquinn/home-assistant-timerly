@@ -17,9 +17,7 @@ class TimerlyTimerEntity(CoordinatorEntity, BinarySensorEntity):
         self._attr_name = "Timer"
         self._attr_icon = "mdi:bell-badge"
         self._attr_device_class = BinarySensorDeviceClass.RUNNING
-        self._attr_unique_id = (
-            f"timerly_{config_entry.entry_id}_{coordinator.device.name}_timer"
-        )
+        self._attr_unique_id = coordinator.device.unique_id
         self._attr_config_entry_id = config_entry.entry_id
         self._attr_has_entity_name = True
 
@@ -31,11 +29,7 @@ class TimerlyTimerEntity(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def is_on(self):
-        return self.coordinator.data.get(
-            "end_ms"
-        ) is not None and self.coordinator.data.get("end_ms") > (
-            datetime.now(UTC).timestamp() * 1000
-        )
+        return self.coordinator.is_running(self.coordinator.data.get("end_ms"))
 
     @property
     def extra_state_attributes(self):
@@ -74,9 +68,7 @@ class TimerlyTimerEntity(CoordinatorEntity, BinarySensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, f"{self._attr_config_entry_id}_{self.coordinator.device.name}")
-            },
+            identifiers={(DOMAIN, f"{self.coordinator.device.name}")},
             manufacturer="Timerly",
             name=self.coordinator.device.name,
             sw_version="1.0.0",

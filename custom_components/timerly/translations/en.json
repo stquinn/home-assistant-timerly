@@ -14,5 +14,11 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "timer_started": "Timer Started",
+      "timer_ended": "Timer Stopped"
+    }
   }
 }

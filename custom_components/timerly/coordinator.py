@@ -29,6 +29,12 @@ class TimerlyCoordinator(DataUpdateCoordinator):
         self._scheduled_end_time: datetime | None = None
         self._consecutive_failures = 0
         self._failure_threshold = 2  # or 3 for h
+        self._was_running: bool | None = None
+
+    def is_running(self, timer_end_ms):
+        return timer_end_ms is not None and timer_end_ms > (
+            datetime.now(UTC).timestamp() * 1000
+        )
 
     async def _fetch_timer_data(self):
         try:
@@ -56,12 +62,45 @@ class TimerlyCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("❌ %s unreachable: %s", self.device.name, e)
             raise UpdateFailed(e) from e
 
+    def handle_state_events(self, new_data):
+        is_running_now = new_data.get("end_ms") is not None
+
+        if self._was_running is not None and self._was_running != is_running_now:
+            # Timer state has changed
+            new_state = "on" if is_running_now else "off"
+            _LOGGER.info(
+                "[%s] 🔄 Timer state changed to %s", self.device.name, new_state
+            )
+            if new_state == "on":
+                self.hass.bus.async_fire(
+                    "timerly_timer_started",
+                    {
+                        "device_id": self.device.unique_id,
+                        "device_name": self.device.name,
+                        "entity_id": f"binary_sensor.{self.device.unique_id}",
+                        "new_state": new_state,
+                    },
+                )
+            else:
+                self.hass.bus.async_fire(
+                    "timerly_timer_stopped",
+                    {
+                        "device_id": self.device.unique_id,
+                        "device_name": self.device.name,
+                        "entity_id": f"binary_sensor.{self.device.unique_id}",
+                        "new_state": new_state,
+                    },
+                )
+
+        self._was_running = is_running_now
+
     async def _async_update_data(self):
         try:
             newData = await self._fetch_timer_data()
             # Reset failure count on success
             self._consecutive_failures = 0
             end_ms = newData.get("end_ms")
+            self.handle_state_events(newData)
             self._maybe_schedule_refresh(end_ms)
         except (TimeoutError, aiohttp.ClientError, OSError) as e:
             self._consecutive_failures += 1
@@ -93,7 +132,7 @@ class TimerlyCoordinator(DataUpdateCoordinator):
 
     def _maybe_schedule_refresh(self, end_ms: int | None):
         """Schedule a one-time refresh at the timer's end time, only if not already scheduled."""
-        if not end_ms:
+        if not self.is_running(end_ms):
             # No timer running, cancel any scheduled refresh
             self._scheduler.cancel(SCHEDULER_JOB_END_TIME_REFRESH)
             self._scheduled_end_time = None
