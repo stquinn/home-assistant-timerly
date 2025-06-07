@@ -1,3 +1,9 @@
+## [v0.9.0] - 2025-06-07
+
+
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.8.0...v0.9.0)
+
 ## [v0.8.0] - 2025-06-04
 
 - Added Refreesh all service
