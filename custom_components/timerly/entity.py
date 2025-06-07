@@ -54,6 +54,7 @@ class TimerlyTimerEntity(CoordinatorEntity, BinarySensorEntity):
             attrs["end_time_utc"] = end_utc.isoformat()
 
             remaining = int((end_utc - datetime.now(UTC)).total_seconds())
+            attrs["remaining_sec"] = remaining
             if remaining > 0:
                 mins, secs = divmod(remaining, 60)
                 hrs, mins = divmod(mins, 60)
