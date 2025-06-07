@@ -1,3 +1,10 @@
+## [v0.10.0] - 2025-06-07
+
+- Added Event and Trigger Genration Code
+- Implemenetd the Coordinator Pattern
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.9.0...v0.10.0)
+
 ## [v0.9.0] - 2025-06-07
 
 
