@@ -61,29 +61,25 @@ class TimerlyNotificationService(BaseNotificationService):
         title = kwargs.get(ATTR_TITLE, "")
         data = kwargs.get(ATTR_DATA) or {}
 
-        payload = {
-            ATTR_NAME: data.get(ATTR_NAME, ""),
-            ATTR_TYPE: data.get(ATTR_TYPE, "INFO"),
-            ATTR_POSITION: data.get(ATTR_POSITION, "BottomRight"),
-            ATTR_TITLE: title,
-            ATTR_TEXT: message,
-            ATTR_DURATION: data.get(ATTR_DURATION, 15),
-            ATTR_VOICE_MESSAGE_ENABLED: data.get(ATTR_VOICE_MESSAGE_ENABLED, False),
-            ATTR_VOICE_MESSAGE: data.get(ATTR_VOICE_MESSAGE, ""),
-            ATTR_VOICE_MESSAGE_DELAY: data.get(ATTR_VOICE_MESSAGE_DELAY, 0),
-            ATTR_FLASH_ANIMATION_ENABLED: data.get(
-                ATTR_FLASH_ANIMATION_ENABLED, False
-            ),
-            ATTR_FLASH_ANIMATION_REPEAT_COUNT: data.get(
-                ATTR_FLASH_ANIMATION_REPEAT_COUNT, 0
-            ),
-            ATTR_FLASH_ANIMATION_DELAY: data.get(ATTR_FLASH_ANIMATION_DELAY, 0),
-            ATTR_NOTIFICATION_SOUND_ENABLED: data.get(
-                ATTR_NOTIFICATION_SOUND_ENABLED, False
-            ),
-            ATTR_NOTIFICATION_SOUND: data.get(ATTR_NOTIFICATION_SOUND, ""),
-            ATTR_NOTIFICATION_SOUND_NAME: data.get(ATTR_NOTIFICATION_SOUND_NAME, ""),
-        }
+       allowed_keys = [
+            ATTR_NAME,
+            ATTR_TYPE,
+            ATTR_POSITION,
+            ATTR_DURATION,
+            ATTR_VOICE_MESSAGE_ENABLED,
+            ATTR_VOICE_MESSAGE,
+            ATTR_VOICE_MESSAGE_DELAY,
+            ATTR_FLASH_ANIMATION_ENABLED,
+            ATTR_FLASH_ANIMATION_REPEAT_COUNT,
+            ATTR_FLASH_ANIMATION_DELAY,
+            ATTR_NOTIFICATION_SOUND_ENABLED,
+            ATTR_NOTIFICATION_SOUND,
+            ATTR_NOTIFICATION_SOUND_NAME,
+        ]
+
+        payload = {key: data[key] for key in allowed_keys if key in data}
+        payload[ATTR_TITLE] = title
+        payload[ATTR_TEXT] = message
 
         await self.post_to_hosts(get_discovered_devices().values(), "alert", payload)
 
