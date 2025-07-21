@@ -1,3 +1,10 @@
+## [v0.12.0] - 2025-07-21
+
+- Update notify.py
+- Update default values so that they can be parsed by server
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.11.1...v0.12.0)
+
 ## [v0.11.1] - 2025-06-08
 
 - patch: fixed short timeout
