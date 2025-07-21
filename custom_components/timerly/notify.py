@@ -75,7 +75,7 @@ class TimerlyNotificationService(BaseNotificationService):
                 ATTR_FLASH_ANIMATION_ENABLED, False
             ),
             ATTR_FLASH_ANIMATION_REPEAT_COUNT: data.get(
-                ATTR_FLASH_ANIMATION_REPEAT_COUNT, ""
+                ATTR_FLASH_ANIMATION_REPEAT_COUNT, 0
             ),
             ATTR_FLASH_ANIMATION_DELAY: data.get(ATTR_FLASH_ANIMATION_DELAY, 0),
             ATTR_NOTIFICATION_SOUND_ENABLED: data.get(
