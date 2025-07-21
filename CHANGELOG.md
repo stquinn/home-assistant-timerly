@@ -1,3 +1,9 @@
+## [v0.13.0] - 2025-07-21
+
+- Update notify.py
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.12.0...v0.13.0)
+
 ## [v0.12.0] - 2025-07-21
 
 - Update notify.py
