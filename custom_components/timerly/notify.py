@@ -61,7 +61,7 @@ class TimerlyNotificationService(BaseNotificationService):
         title = kwargs.get(ATTR_TITLE, "")
         data = kwargs.get(ATTR_DATA) or {}
 
-       allowed_keys = [
+        allowed_keys = [
             ATTR_NAME,
             ATTR_TYPE,
             ATTR_POSITION,
@@ -76,7 +76,7 @@ class TimerlyNotificationService(BaseNotificationService):
             ATTR_NOTIFICATION_SOUND,
             ATTR_NOTIFICATION_SOUND_NAME,
         ]
-
+        
         payload = {key: data[key] for key in allowed_keys if key in data}
         payload[ATTR_TITLE] = title
         payload[ATTR_TEXT] = message
