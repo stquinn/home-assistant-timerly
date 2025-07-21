@@ -67,19 +67,19 @@ class TimerlyNotificationService(BaseNotificationService):
             ATTR_POSITION: data.get(ATTR_POSITION, "BottomRight"),
             ATTR_TITLE: title,
             ATTR_TEXT: message,
-            ATTR_DURATION: data.get(ATTR_DURATION, "15"),
-            ATTR_VOICE_MESSAGE_ENABLED: data.get(ATTR_VOICE_MESSAGE_ENABLED, "false"),
+            ATTR_DURATION: data.get(ATTR_DURATION, 15),
+            ATTR_VOICE_MESSAGE_ENABLED: data.get(ATTR_VOICE_MESSAGE_ENABLED, False),
             ATTR_VOICE_MESSAGE: data.get(ATTR_VOICE_MESSAGE, ""),
-            ATTR_VOICE_MESSAGE_DELAY: data.get(ATTR_VOICE_MESSAGE_DELAY, ""),
+            ATTR_VOICE_MESSAGE_DELAY: data.get(ATTR_VOICE_MESSAGE_DELAY, 0),
             ATTR_FLASH_ANIMATION_ENABLED: data.get(
-                ATTR_FLASH_ANIMATION_ENABLED, "false"
+                ATTR_FLASH_ANIMATION_ENABLED, False
             ),
             ATTR_FLASH_ANIMATION_REPEAT_COUNT: data.get(
                 ATTR_FLASH_ANIMATION_REPEAT_COUNT, ""
             ),
-            ATTR_FLASH_ANIMATION_DELAY: data.get(ATTR_FLASH_ANIMATION_DELAY, ""),
+            ATTR_FLASH_ANIMATION_DELAY: data.get(ATTR_FLASH_ANIMATION_DELAY, 0),
             ATTR_NOTIFICATION_SOUND_ENABLED: data.get(
-                ATTR_NOTIFICATION_SOUND_ENABLED, "false"
+                ATTR_NOTIFICATION_SOUND_ENABLED, False
             ),
             ATTR_NOTIFICATION_SOUND: data.get(ATTR_NOTIFICATION_SOUND, ""),
             ATTR_NOTIFICATION_SOUND_NAME: data.get(ATTR_NOTIFICATION_SOUND_NAME, ""),
