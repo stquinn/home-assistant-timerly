@@ -123,7 +123,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
             endTime = dt_util.as_local(datetime.combine(today, parsedTime))
 
             delta = endTime - now
-            seconds = delta.total_seconds()
+            seconds = int(delta.total_seconds())
             if seconds < 0:
                 _LOGGER.error(
                     "Time specified is in the past - Specified %s, and its now %s",
