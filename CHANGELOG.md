@@ -1,3 +1,9 @@
+## [v0.13.2] - 2025-07-24
+
+- Fix Floating Point Parse Error
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.13.1...v0.13.2)
+
 ## [v0.13.1] - 2025-07-21
 
 - Update notify.py
