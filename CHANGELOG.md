@@ -1,3 +1,9 @@
+## [v0.14.0] - 2025-08-15
+
+- Update Doorbell for video feed supply
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.13.2...v0.14.0)
+
 ## [v0.13.2] - 2025-07-24
 
 - Fix Floating Point Parse Error
