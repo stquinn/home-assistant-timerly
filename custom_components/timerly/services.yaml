@@ -127,6 +127,24 @@ doorbell:
       integration: timerly
     device:
       integration: timerly
+  fields:
+    duration:
+      name: Duration (seconds)
+      description: The length of the notification in seconds.
+      required: false
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 120
+          step: 60
+          unit_of_measurement: seconds
+    video:
+      name: Video Feed URI
+      description: URI of video feed
+      required: false
+      default: ""
+
 
 dismiss:
   name: Dismiss

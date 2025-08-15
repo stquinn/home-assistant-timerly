@@ -180,8 +180,11 @@ async def async_setup(hass: HomeAssistant, config: dict):
         await handle_refresh_all(None)
 
     async def handle_doorbell(call: ServiceCall):
+        seconds = call.data.get("duration", 30)
+        video = call.data.get("video", "")
+        payload = {"duration": seconds, "mediaUri": video}
         await post_to_hosts(
-            get_matching_devices(call.data.get("entity_id", [])), "doorbell", {}
+            get_matching_devices(call.data.get("entity_id", [])), "doorbell", payload
         )
 
     async def handle_dismiss(call: ServiceCall):
