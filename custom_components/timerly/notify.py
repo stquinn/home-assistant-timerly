@@ -35,6 +35,9 @@ ATTR_FLASH_ANIMATION_DELAY = "flashAnimationInitialDelay"
 ATTR_NOTIFICATION_SOUND_ENABLED = "notificationSoundEnabled"
 ATTR_NOTIFICATION_SOUND = "notificationSound"
 ATTR_NOTIFICATION_SOUND_NAME = "notificationSoundName"
+ATTR_AUDIO_URI = "audioUri"
+ATTR_VIDEO_URI = "videoUri"
+ATTR_IMAGE_URI = "imageUri"
 
 
 from .const import DOMAIN
@@ -75,6 +78,9 @@ class TimerlyNotificationService(BaseNotificationService):
             ATTR_NOTIFICATION_SOUND_ENABLED,
             ATTR_NOTIFICATION_SOUND,
             ATTR_NOTIFICATION_SOUND_NAME,
+            ATTR_AUDIO_URI,
+            ATTR_IMAGE_URI,
+            ATTR_VIDEO_URI,
         ]
         
         payload = {key: data[key] for key in allowed_keys if key in data}
