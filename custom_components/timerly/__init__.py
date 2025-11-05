@@ -151,15 +151,13 @@ async def async_setup(hass: HomeAssistant, config: dict):
             )
             raise Exception("Must specify one of endTime, minutes or seconds")
 
-        duration = call.data.get("duration", seconds)
+        
         position = call.data.get("position", "BottomRight")
-        duration = call.data.get("duration", seconds)
         voice = call.data.get("voice", True)
         type_ = call.data.get("type", "DEFAULT")
         payload = {
             "seconds": seconds,
             "position": position,
-            "duration": duration,
             "voice": voice,
             "type": type_,
             "startTime": int(time.time() * 1000),
