@@ -1,3 +1,9 @@
+## [v0.16.1] - 2025-11-05
+
+- Removed Duration Parameter from Timer POST
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.16.0...v0.16.1)
+
 ## [v0.16.0] - 2025-10-18
 
 - Update __init__.py
