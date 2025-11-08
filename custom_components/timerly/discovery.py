@@ -133,9 +133,13 @@ async def try_add_new_entities(hass: HomeAssistant):
         # Reuse or create new coordinator
         if name not in coordinators:
             _LOGGER.info("🧠 Creating new coordinator for %s", name)
-            coordinator = TimerlyCoordinator(hass, device)
-            await coordinator.async_config_entry_first_refresh()
-            coordinators[name] = coordinator
+            coordinator = TimerlyCoordinator(hass, device, entry)
+            try:
+                await coordinator.async_config_entry_first_refresh()
+                coordinators[name] = coordinator
+            except Exception as err:
+                _LOGGER.error("Failed to initialize coordinator for %s: %s", name, err)
+                continue  # Skip this device and try the next one
         else:
             coordinator = coordinators[name]
             _LOGGER.debug("♻️ Reusing existing coordinator for %s", name)
