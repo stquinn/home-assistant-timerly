@@ -1,3 +1,10 @@
+## [v0.16.2] - 2025-11-08
+
+- Update discovery.py
+- Update coordinator.py
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.16.1...v0.16.2)
+
 ## [v0.16.1] - 2025-11-05
 
 - Removed Duration Parameter from Timer POST
