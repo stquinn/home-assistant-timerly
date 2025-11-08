@@ -16,12 +16,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TimerlyCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, device: TimerlyDevice):
+    def __init__(self, hass, device: TimerlyDevice, config_entry):
         super().__init__(
             hass,
             _LOGGER,
             name=f"Timerly ({device.name})",
             update_interval=timedelta(seconds=15),
+            config_entry=config_entry,
         )
         self.device = device
         self._session = async_get_clientsession(hass)
