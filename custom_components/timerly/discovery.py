@@ -118,6 +118,12 @@ async def async_setup_mdns(hass: HomeAssistant):
 
 async def try_add_new_entities(hass: HomeAssistant):
     discovered = get_discovered_devices()
+
+    # Safety check: Ensure the platforms are ready to receive entities
+    if "async_add_entities" not in hass.data.get(DOMAIN, {}):
+        _LOGGER.debug("⚠️ async_add_entities not ready yet, skipping discovery")
+        return
+
     async_add_entities = hass.data[DOMAIN].get("async_add_entities")
     entry = hass.data[DOMAIN]["entry"]
     existing_entity_ids = hass.data[DOMAIN].setdefault("entities", [])
@@ -134,8 +140,11 @@ async def try_add_new_entities(hass: HomeAssistant):
         if name not in coordinators:
             _LOGGER.info("🧠 Creating new coordinator for %s", name)
             coordinator = TimerlyCoordinator(hass, device, entry)
+
+            # ✅ FIX: Use async_refresh() instead of first_refresh()
+            # first_refresh() raises an error if the entry is already LOADED.
             try:
-                await coordinator.async_config_entry_first_refresh()
+                await coordinator.async_refresh()
                 coordinators[name] = coordinator
             except Exception as err:
                 _LOGGER.error("Failed to initialize coordinator for %s: %s", name, err)
