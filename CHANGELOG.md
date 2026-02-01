@@ -1,3 +1,9 @@
+## [v0.16.3] - 2026-02-01
+
+- Fixed API change errors
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.16.2...v0.16.3)
+
 ## [v0.16.2] - 2025-11-08
 
 - Update discovery.py
