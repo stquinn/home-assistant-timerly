@@ -1,3 +1,9 @@
+## [v0.17.0] - 2026-04-05
+
+- Update notify.py
+
+[Full Changelog](https://github.com/stquinn/home-assistant-timerly/compare/v0.16.3...v0.17.0)
+
 ## [v0.16.3] - 2026-02-01
 
 - Fixed API change errors
