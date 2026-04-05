@@ -87,7 +87,19 @@ class TimerlyNotificationService(BaseNotificationService):
         payload[ATTR_TITLE] = title
         payload[ATTR_TEXT] = message
 
-        await self.post_to_hosts(get_discovered_devices().values(), "alert", payload)
+        all_devices = get_discovered_devices().values()
+    
+        if targets:
+            # Filter to only devices whose binary_sensor entity_id is in targets
+            hosts = [
+                h for h in all_devices
+                if f"binary_sensor.{h['device'].name.lower().replace(' ', '_')}_timer"
+                in targets
+            ]
+        else:
+            hosts = all_devices
+    
+        await self.post_to_hosts(hosts, "alert", payload)
 
     async def post_to_hosts(self, hosts, endpoint: str, payload: dict):
         for host in hosts:
